@@ -21,12 +21,25 @@ type Suggestion = {
 type PendingNew = {
   barcode: string;
   name: string;
+  qty: string;
 };
 
 type LastSession = {
   transactionIds: string[];
   summary: string;
 };
+
+function bumpToFront<T extends { key: string; qty: number }>(
+  prev: T[],
+  key: string,
+  deltaQty: number
+): T[] {
+  const idx = prev.findIndex((line) => line.key === key);
+  if (idx === -1) return prev;
+  const updated = { ...prev[idx], qty: prev[idx].qty + deltaQty };
+  const rest = prev.filter((_, i) => i !== idx);
+  return [updated, ...rest];
+}
 
 export default function InventoryInPage() {
   const [query, setQuery] = useState("");
@@ -86,11 +99,11 @@ export default function InventoryInPage() {
     setCart((prev) => {
       const existing = prev.find((line) => line.itemId === item.id);
       if (existing) {
-        return prev.map((line) => (line.itemId === item.id ? { ...line, qty: line.qty + 1 } : line));
+        return bumpToFront(prev, existing.key, 1);
       }
       return [
-        ...prev,
         { key: item.id, itemId: item.id, name: item.name, barcode: item.barcode, qty: 1, isNew: false },
+        ...prev,
       ];
     });
     setQuery("");
@@ -125,9 +138,7 @@ export default function InventoryInPage() {
       (line) => line.barcode === value || line.name.toLowerCase() === value.toLowerCase()
     );
     if (cartMatch) {
-      setCart((prev) =>
-        prev.map((line) => (line.key === cartMatch.key ? { ...line, qty: line.qty + 1 } : line))
-      );
+      setCart((prev) => bumpToFront(prev, cartMatch.key, 1));
       setQuery("");
       scanInputRef.current?.focus();
       return;
@@ -149,7 +160,6 @@ export default function InventoryInPage() {
       }
       if (data.item) {
         setCart((prev) => [
-          ...prev,
           {
             key: data.item.id,
             itemId: data.item.id,
@@ -158,6 +168,7 @@ export default function InventoryInPage() {
             qty: 1,
             isNew: false,
           },
+          ...prev,
         ]);
         setQuery("");
         scanInputRef.current?.focus();
@@ -165,9 +176,9 @@ export default function InventoryInPage() {
         // Heuristic: pure digits typed/scanned are almost certainly a barcode;
         // anything else is more likely a manually typed product name.
         if (/^\d+$/.test(value)) {
-          setPendingNew({ barcode: value, name: "" });
+          setPendingNew({ barcode: value, name: "", qty: "1" });
         } else {
-          setPendingNew({ barcode: "", name: value });
+          setPendingNew({ barcode: "", name: value, qty: "1" });
         }
         setQuery("");
       }
@@ -179,24 +190,53 @@ export default function InventoryInPage() {
     }
   }
 
-  function addPendingToCart(e: FormEvent) {
+  async function addPendingToCart(e: FormEvent) {
     e.preventDefault();
-    if (!pendingNew) return;
+    if (!pendingNew || busy) return;
     const name = pendingNew.name.trim();
     const barcode = pendingNew.barcode.trim();
+    const qty = Number(pendingNew.qty);
     if (!name || !barcode) {
       setMessage({ text: "Name and barcode are both required.", kind: "error" });
       return;
     }
-    setCart((prev) => {
-      const dup = prev.find((line) => line.barcode === barcode);
-      if (dup) {
-        return prev.map((line) => (line.barcode === barcode ? { ...line, qty: line.qty + 1 } : line));
-      }
-      return [...prev, { key: barcode, name, barcode, qty: 1, isNew: true }];
-    });
-    setPendingNew(null);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setMessage({ text: "Enter a positive whole quantity.", kind: "error" });
+      return;
+    }
+
+    // Already queued under this barcode in the current session?
+    const cartDup = cart.find((line) => line.barcode === barcode);
+    if (cartDup) {
+      setCart((prev) => bumpToFront(prev, cartDup.key, qty));
+      setPendingNew(null);
+      setMessage(null);
+      return;
+    }
+
+    setBusy(true);
     setMessage(null);
+    try {
+      const res = await fetch("/api/items/lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: barcode }),
+      });
+      const data = await res.json();
+      if (res.ok && data.item) {
+        setMessage({
+          text: `Barcode ${barcode} already belongs to "${data.item.name}" — scan it directly to add stock instead, or fix the barcode.`,
+          kind: "error",
+        });
+        return;
+      }
+      setCart((prev) => [{ key: barcode, name, barcode, qty, isNew: true }, ...prev]);
+      setPendingNew(null);
+    } catch {
+      setMessage({ text: "Network error. Please try again.", kind: "error" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   function updateQty(key: string, value: string) {
@@ -356,7 +396,8 @@ export default function InventoryInPage() {
             ref={nameInputRef}
             value={pendingNew.name}
             onChange={(e) => setPendingNew({ ...pendingNew, name: e.target.value })}
-            className="mb-5 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60"
+            disabled={busy}
+            className="mb-5 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
           />
           <label htmlFor="newBarcode" className="mb-2 block text-lg font-medium text-black/70">
             Barcode
@@ -365,19 +406,34 @@ export default function InventoryInPage() {
             id="newBarcode"
             value={pendingNew.barcode}
             onChange={(e) => setPendingNew({ ...pendingNew, barcode: e.target.value })}
-            className="mb-6 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60"
+            disabled={busy}
+            className="mb-5 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
+          />
+          <label htmlFor="newQty" className="mb-2 block text-lg font-medium text-black/70">
+            Quantity
+          </label>
+          <input
+            id="newQty"
+            type="number"
+            min={1}
+            value={pendingNew.qty}
+            onChange={(e) => setPendingNew({ ...pendingNew, qty: e.target.value })}
+            disabled={busy}
+            className="mb-6 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
           />
           <div className="flex gap-3">
             <button
               type="submit"
-              className="rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white"
+              disabled={busy}
+              className="rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white disabled:opacity-50"
             >
-              Add to list
+              {busy ? "Checking..." : "Add to list"}
             </button>
             <button
               type="button"
               onClick={() => setPendingNew(null)}
-              className="rounded-lg border border-black/20 px-6 py-3 text-lg font-medium"
+              disabled={busy}
+              className="rounded-lg border border-black/20 px-6 py-3 text-lg font-medium disabled:opacity-50"
             >
               Cancel
             </button>

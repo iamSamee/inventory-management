@@ -23,6 +23,18 @@ type LastSession = {
   summary: string;
 };
 
+function bumpToFront<T extends { key: string; qty: number }>(
+  prev: T[],
+  key: string,
+  deltaQty: number
+): T[] {
+  const idx = prev.findIndex((line) => line.key === key);
+  if (idx === -1) return prev;
+  const updated = { ...prev[idx], qty: prev[idx].qty + deltaQty };
+  const rest = prev.filter((_, i) => i !== idx);
+  return [updated, ...rest];
+}
+
 export default function InventoryOutPage() {
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartLine[]>([]);
@@ -77,16 +89,14 @@ export default function InventoryOutPage() {
           kind: "error",
         });
       } else {
-        setCart((prev) =>
-          prev.map((line) => (line.itemId === item.id ? { ...line, qty: line.qty + 1 } : line))
-        );
+        setCart((prev) => bumpToFront(prev, existing.key, 1));
       }
     } else if (item.quantity <= 0) {
       setMessage({ text: `${item.name} is already at 0 stock.`, kind: "error" });
     } else {
       setCart((prev) => [
-        ...prev,
         { key: item.id, itemId: item.id, name: item.name, barcode: item.barcode, qty: 1, maxQty: item.quantity },
+        ...prev,
       ]);
     }
     setQuery("");
@@ -130,9 +140,7 @@ export default function InventoryOutPage() {
         inputRef.current?.focus();
         return;
       }
-      setCart((prev) =>
-        prev.map((line) => (line.key === cartMatch.key ? { ...line, qty: line.qty + 1 } : line))
-      );
+      setCart((prev) => bumpToFront(prev, cartMatch.key, 1));
       setQuery("");
       inputRef.current?.focus();
       return;
@@ -160,7 +168,6 @@ export default function InventoryOutPage() {
         return;
       }
       setCart((prev) => [
-        ...prev,
         {
           key: data.item.id,
           itemId: data.item.id,
@@ -169,6 +176,7 @@ export default function InventoryOutPage() {
           qty: 1,
           maxQty: data.item.quantity,
         },
+        ...prev,
       ]);
       setQuery("");
     } catch {
