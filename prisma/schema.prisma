@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+// Only a single row will ever exist in this table, but it is modeled
+// properly (unique username, timestamps) rather than hardcoded.
+model User {
+  id            String    @id @default(cuid())
+  username      String    @unique
+  passwordHash  String    @map("password_hash")
+  failedAttempts Int      @default(0) @map("failed_attempts")
+  lockedUntil   DateTime? @map("locked_until")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Item {
+  id           String        @id @default(cuid())
+  name         String
+  barcode      String        @unique
+  quantity     Int           @default(0)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  transactions Transaction[]
+
+  @@map("items")
+}
+
+// Only a single row will ever exist in this table. Holds app-wide settings
+// that apply to every item uniformly, e.g. the low-stock threshold.
+model Settings {
+  id                String   @id @default(cuid())
+  lowStockThreshold Int      @default(0) @map("low_stock_threshold")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("settings")
+}
+
+enum TransactionType {
+  in
+  out
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  itemId      String          @map("item_id")
+  item        Item            @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  type        TransactionType
+  qtyChanged  Int             @map("qty_changed")
+  timestamp   DateTime        @default(now())
+
+  @@index([itemId])
+  @@index([timestamp])
+  @@map("transactions")
+}
