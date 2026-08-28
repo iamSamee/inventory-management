@@ -35,10 +35,10 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-[var(--background)]">
+    <div className="flex flex-1 items-center justify-center bg-[var(--background)] px-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-sm rounded-xl border border-black/10 bg-white p-10 shadow-sm"
+        className="w-full max-w-sm rounded-xl border border-black/10 bg-white p-6 shadow-sm sm:p-10"
       >
         <h1 className="mb-8 text-2xl font-semibold">Inventory Login</h1>
 

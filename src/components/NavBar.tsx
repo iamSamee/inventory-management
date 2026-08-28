@@ -20,17 +20,17 @@ export default function NavBar() {
   }
 
   return (
-    <nav className="flex h-16 items-center justify-between border-b border-black/10 bg-white px-8">
-      <div className="flex items-center gap-8">
+    <nav className="flex flex-wrap items-center justify-between gap-y-2 border-b border-black/10 bg-white px-4 py-3 sm:h-16 sm:px-8 sm:py-0">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-8">
         <span className="text-lg font-bold">Inventory</span>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-1 sm:gap-2">
           {links.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`rounded-lg px-4 py-2 text-base font-medium transition-colors ${
+                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors sm:px-4 sm:py-2 sm:text-base ${
                   active
                     ? "bg-black text-white"
                     : "text-black/70 hover:bg-black/5"
@@ -44,7 +44,7 @@ export default function NavBar() {
       </div>
       <button
         onClick={handleLogout}
-        className="rounded-lg border border-black/20 px-4 py-2 text-base font-medium text-black/70 transition-colors hover:bg-black/5"
+        className="rounded-lg border border-black/20 px-3 py-1.5 text-sm font-medium text-black/70 transition-colors hover:bg-black/5 sm:px-4 sm:py-2 sm:text-base"
       >
         Log out
       </button>

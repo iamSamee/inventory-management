@@ -319,12 +319,12 @@ export default function InventoryInPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Inventory In</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold sm:text-3xl">Inventory In</h1>
         <button
           onClick={handleUndoSession}
           disabled={!lastSession || busy}
-          className="rounded-lg border border-black/20 px-4 py-2 text-base font-medium disabled:opacity-40"
+          className="rounded-lg border border-black/20 px-3 py-1.5 text-sm font-medium disabled:opacity-40 sm:px-4 sm:py-2 sm:text-base"
         >
           Undo last session {lastSession ? `(${lastSession.summary})` : ""}
         </button>
@@ -340,8 +340,8 @@ export default function InventoryInPage() {
         </p>
       )}
 
-      <form onSubmit={handleScanSubmit} className="relative mb-6 rounded-xl border border-black/10 bg-white p-8">
-        <label htmlFor="scan" className="mb-2 block text-lg font-medium text-black/70">
+      <form onSubmit={handleScanSubmit} className="relative mb-6 rounded-xl border border-black/10 bg-white p-4 sm:p-8">
+        <label htmlFor="scan" className="mb-2 block text-base font-medium text-black/70 sm:text-lg">
           Scan barcode or type product name
         </label>
         <input
@@ -351,11 +351,11 @@ export default function InventoryInPage() {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleScanKeyDown}
           disabled={busy || !!pendingNew}
-          className="w-full rounded-lg border border-black/20 px-5 py-4 text-2xl outline-none focus:border-black/60 disabled:opacity-50"
+          className="w-full rounded-lg border border-black/20 px-4 py-3 text-xl outline-none focus:border-black/60 disabled:opacity-50 sm:px-5 sm:py-4 sm:text-2xl"
           autoComplete="off"
         />
         {suggestions.length > 0 && (
-          <ul className="absolute inset-x-8 top-[calc(100%-1rem)] z-10 overflow-hidden rounded-lg border border-black/10 bg-white shadow-lg">
+          <ul className="absolute inset-x-4 top-[calc(100%-1rem)] z-10 overflow-hidden rounded-lg border border-black/10 bg-white shadow-lg sm:inset-x-8">
             {suggestions.map((item, index) => (
               <li key={item.id}>
                 <button
@@ -365,12 +365,12 @@ export default function InventoryInPage() {
                     selectSuggestion(item);
                   }}
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex w-full items-center justify-between px-5 py-3 text-left text-lg ${
+                  className={`flex w-full flex-col gap-0.5 px-4 py-3 text-left text-base sm:flex-row sm:items-center sm:justify-between sm:gap-0 sm:px-5 sm:text-lg ${
                     index === highlightedIndex ? "bg-black/5" : ""
                   }`}
                 >
                   <span className="font-medium">{item.name}</span>
-                  <span className="text-black/50">
+                  <span className="text-sm text-black/50 sm:text-base">
                     {item.barcode} &middot; {item.quantity} in stock
                   </span>
                 </button>
@@ -383,12 +383,12 @@ export default function InventoryInPage() {
       {pendingNew && (
         <form
           onSubmit={addPendingToCart}
-          className="mb-6 rounded-xl border border-black/10 bg-white p-8"
+          className="mb-6 rounded-xl border border-black/10 bg-white p-4 sm:p-8"
         >
           <p className="mb-6 text-sm font-medium uppercase tracking-wide text-black/50">
             No match found &mdash; name this new item to add it to the list
           </p>
-          <label htmlFor="newName" className="mb-2 block text-lg font-medium text-black/70">
+          <label htmlFor="newName" className="mb-2 block text-base font-medium text-black/70 sm:text-lg">
             Name
           </label>
           <input
@@ -397,9 +397,9 @@ export default function InventoryInPage() {
             value={pendingNew.name}
             onChange={(e) => setPendingNew({ ...pendingNew, name: e.target.value })}
             disabled={busy}
-            className="mb-5 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
+            className="mb-5 w-full rounded-lg border border-black/20 px-4 py-3 text-lg outline-none focus:border-black/60 disabled:opacity-50 sm:px-5 sm:py-4 sm:text-xl"
           />
-          <label htmlFor="newBarcode" className="mb-2 block text-lg font-medium text-black/70">
+          <label htmlFor="newBarcode" className="mb-2 block text-base font-medium text-black/70 sm:text-lg">
             Barcode
           </label>
           <input
@@ -407,9 +407,9 @@ export default function InventoryInPage() {
             value={pendingNew.barcode}
             onChange={(e) => setPendingNew({ ...pendingNew, barcode: e.target.value })}
             disabled={busy}
-            className="mb-5 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
+            className="mb-5 w-full rounded-lg border border-black/20 px-4 py-3 text-lg outline-none focus:border-black/60 disabled:opacity-50 sm:px-5 sm:py-4 sm:text-xl"
           />
-          <label htmlFor="newQty" className="mb-2 block text-lg font-medium text-black/70">
+          <label htmlFor="newQty" className="mb-2 block text-base font-medium text-black/70 sm:text-lg">
             Quantity
           </label>
           <input
@@ -419,13 +419,13 @@ export default function InventoryInPage() {
             value={pendingNew.qty}
             onChange={(e) => setPendingNew({ ...pendingNew, qty: e.target.value })}
             disabled={busy}
-            className="mb-6 w-full rounded-lg border border-black/20 px-5 py-4 text-xl outline-none focus:border-black/60 disabled:opacity-50"
+            className="mb-6 w-full rounded-lg border border-black/20 px-4 py-3 text-lg outline-none focus:border-black/60 disabled:opacity-50 sm:px-5 sm:py-4 sm:text-xl"
           />
-          <div className="flex gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row">
             <button
               type="submit"
               disabled={busy}
-              className="rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white disabled:opacity-50"
+              className="w-full rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white disabled:opacity-50 sm:w-auto"
             >
               {busy ? "Checking..." : "Add to list"}
             </button>
@@ -433,7 +433,7 @@ export default function InventoryInPage() {
               type="button"
               onClick={() => setPendingNew(null)}
               disabled={busy}
-              className="rounded-lg border border-black/20 px-6 py-3 text-lg font-medium disabled:opacity-50"
+              className="w-full rounded-lg border border-black/20 px-6 py-3 text-lg font-medium disabled:opacity-50 sm:w-auto"
             >
               Cancel
             </button>
@@ -442,76 +442,78 @@ export default function InventoryInPage() {
       )}
 
       <div className="rounded-xl border border-black/10 bg-white">
-        <div className="flex items-center justify-between border-b border-black/10 px-6 py-4">
-          <h2 className="text-xl font-bold">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-black/10 px-4 py-4 sm:px-6">
+          <h2 className="text-lg font-bold sm:text-xl">
             Current session {cart.length > 0 && <span className="text-black/50">({cart.length} product{cart.length === 1 ? "" : "s"}, {totalQty} item{totalQty === 1 ? "" : "s"})</span>}
           </h2>
         </div>
 
         {cart.length === 0 ? (
-          <p className="px-6 py-8 text-center text-black/50">
+          <p className="px-4 py-8 text-center text-black/50 sm:px-6">
             Scan items to add them here, then complete the transaction.
           </p>
         ) : (
-          <table className="w-full text-left text-lg">
-            <thead>
-              <tr className="border-b border-black/10 text-base uppercase tracking-wide text-black/60">
-                <th className="px-6 py-3 font-semibold">Name</th>
-                <th className="px-6 py-3 font-semibold">Barcode</th>
-                <th className="px-6 py-3 font-semibold">Qty</th>
-                <th className="px-6 py-3 font-semibold"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {cart.map((line) => (
-                <tr key={line.key} className="border-b border-black/5 last:border-0">
-                  <td className="px-6 py-3 font-medium">
-                    {line.name}
-                    {line.isNew && (
-                      <span className="ml-2 rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-blue-700">
-                        New
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-3 text-black/70">{line.barcode}</td>
-                  <td className="px-6 py-3">
-                    <input
-                      type="number"
-                      min={1}
-                      value={line.qty}
-                      onChange={(e) => updateQty(line.key, e.target.value)}
-                      disabled={busy}
-                      className="w-20 rounded-lg border border-black/20 px-3 py-1.5 text-lg outline-none focus:border-black/60"
-                    />
-                  </td>
-                  <td className="px-6 py-3 text-right">
-                    <button
-                      onClick={() => removeLine(line.key)}
-                      disabled={busy}
-                      className="text-black/40 hover:text-red-600"
-                      title="Remove"
-                    >
-                      Remove
-                    </button>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-left text-base sm:text-lg">
+              <thead>
+                <tr className="border-b border-black/10 text-sm uppercase tracking-wide text-black/60 sm:text-base">
+                  <th className="px-4 py-3 font-semibold sm:px-6">Name</th>
+                  <th className="px-4 py-3 font-semibold sm:px-6">Barcode</th>
+                  <th className="px-4 py-3 font-semibold sm:px-6">Qty</th>
+                  <th className="px-4 py-3 font-semibold sm:px-6"></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {cart.map((line) => (
+                  <tr key={line.key} className="border-b border-black/5 last:border-0">
+                    <td className="px-4 py-3 font-medium sm:px-6">
+                      {line.name}
+                      {line.isNew && (
+                        <span className="ml-2 rounded bg-blue-50 px-2 py-0.5 text-xs font-semibold uppercase tracking-wide text-blue-700">
+                          New
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-black/70 sm:px-6">{line.barcode}</td>
+                    <td className="px-4 py-3 sm:px-6">
+                      <input
+                        type="number"
+                        min={1}
+                        value={line.qty}
+                        onChange={(e) => updateQty(line.key, e.target.value)}
+                        disabled={busy}
+                        className="w-20 rounded-lg border border-black/20 px-3 py-1.5 text-lg outline-none focus:border-black/60"
+                      />
+                    </td>
+                    <td className="px-4 py-3 text-right sm:px-6">
+                      <button
+                        onClick={() => removeLine(line.key)}
+                        disabled={busy}
+                        className="text-black/40 hover:text-red-600"
+                        title="Remove"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
-        <div className="flex gap-3 border-t border-black/10 px-6 py-4">
+        <div className="flex flex-col gap-3 border-t border-black/10 px-4 py-4 sm:flex-row sm:px-6">
           <button
             onClick={handleComplete}
             disabled={cart.length === 0 || busy}
-            className="rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white disabled:opacity-40"
+            className="w-full rounded-lg bg-black px-6 py-3 text-lg font-semibold text-white disabled:opacity-40 sm:w-auto"
           >
             Done &mdash; complete transaction
           </button>
           <button
             onClick={() => setCart([])}
             disabled={cart.length === 0 || busy}
-            className="rounded-lg border border-black/20 px-6 py-3 text-lg font-medium disabled:opacity-40"
+            className="w-full rounded-lg border border-black/20 px-6 py-3 text-lg font-medium disabled:opacity-40 sm:w-auto"
           >
             Clear list
           </button>

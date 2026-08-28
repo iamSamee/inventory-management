@@ -90,11 +90,11 @@ export default function OverviewPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold sm:text-3xl">
           Overview
           {!loading && (
-            <span className="ml-3 align-middle text-lg font-medium text-black/50">
+            <span className="ml-3 align-middle text-base font-medium text-black/50 sm:text-lg">
               ({filtered.length} {filtered.length === 1 ? "item" : "items"})
             </span>
           )}
@@ -107,24 +107,24 @@ export default function OverviewPage() {
         </a>
       </div>
 
-      <div className="mb-6 flex flex-wrap items-center gap-4">
+      <div className="mb-6 flex flex-col flex-wrap gap-4 sm:flex-row sm:items-center">
         <input
           type="text"
           placeholder="Search by name or barcode..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-80 rounded-lg border border-black/20 bg-white px-4 py-3 text-lg outline-none focus:border-black/60"
+          className="w-full rounded-lg border border-black/20 bg-white px-4 py-3 text-lg outline-none focus:border-black/60 sm:w-80"
         />
         <label className="flex items-center gap-2 text-lg font-medium">
           <input
             type="checkbox"
             checked={lowStockOnly}
             onChange={(e) => setLowStockOnly(e.target.checked)}
-            className="h-5 w-5"
+            className="h-5 w-5 shrink-0"
           />
           Show only low-stock items
         </label>
-        <label className="ml-auto flex items-center gap-3 text-lg font-medium">
+        <label className="flex flex-col gap-1 text-lg font-medium sm:ml-auto sm:flex-row sm:items-center sm:gap-3">
           Low-stock threshold (applies to all items)
           <input
             type="number"
@@ -147,27 +147,27 @@ export default function OverviewPage() {
         </p>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-black/10 bg-white">
-        <table className="w-full text-left text-lg">
+      <div className="overflow-x-auto rounded-xl border border-black/10 bg-white">
+        <table className="w-full min-w-[520px] text-left text-base sm:text-lg">
           <thead>
-            <tr className="border-b border-black/10 bg-black/5 text-base uppercase tracking-wide text-black/60">
-              <th className="px-6 py-4 font-semibold">#</th>
-              <th className="px-6 py-4 font-semibold">Name</th>
-              <th className="px-6 py-4 font-semibold">Barcode</th>
-              <th className="px-6 py-4 font-semibold">Quantity</th>
+            <tr className="border-b border-black/10 bg-black/5 text-sm uppercase tracking-wide text-black/60 sm:text-base">
+              <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">#</th>
+              <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">Name</th>
+              <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">Barcode</th>
+              <th className="px-3 py-3 font-semibold sm:px-6 sm:py-4">Quantity</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-black/50">
+                <td colSpan={4} className="px-3 py-8 text-center text-black/50 sm:px-6">
                   Loading...
                 </td>
               </tr>
             )}
             {!loading && filtered.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-black/50">
+                <td colSpan={4} className="px-3 py-8 text-center text-black/50 sm:px-6">
                   No items found.
                 </td>
               </tr>
@@ -182,10 +182,10 @@ export default function OverviewPage() {
                       lowStock ? "bg-red-50" : ""
                     }`}
                   >
-                    <td className="px-6 py-4 text-black/50">{index + 1}</td>
-                    <td className="px-6 py-4 font-medium">{item.name}</td>
-                    <td className="px-6 py-4 text-black/70">{item.barcode}</td>
-                    <td className={`px-6 py-4 font-semibold ${lowStock ? "text-red-700" : ""}`}>
+                    <td className="px-3 py-3 text-black/50 sm:px-6 sm:py-4">{index + 1}</td>
+                    <td className="px-3 py-3 font-medium sm:px-6 sm:py-4">{item.name}</td>
+                    <td className="px-3 py-3 text-black/70 sm:px-6 sm:py-4">{item.barcode}</td>
+                    <td className={`px-3 py-3 font-semibold sm:px-6 sm:py-4 ${lowStock ? "text-red-700" : ""}`}>
                       {item.quantity}
                     </td>
                   </tr>
