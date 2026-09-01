@@ -1,4 +1,4 @@
-# Inventory Management
+# Highfield Inventory Management
 
 A single-user, desktop-oriented inventory tracker: scan/type barcodes to move
 stock in and out, and view a live overview with low-stock highlighting.
