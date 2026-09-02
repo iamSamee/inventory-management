@@ -8,6 +8,10 @@ type CartLine = {
   name: string;
   barcode: string;
   qty: number;
+  // Distinguishes "still at the default 1 from a scan" (shows blank in the
+  // qty field) from "user explicitly typed 1" (shows "1"). Scan-driven
+  // increments (bumpToFront) never touch this.
+  qtyEdited: boolean;
   isNew: boolean;
 };
 
@@ -102,7 +106,7 @@ export default function InventoryInPage() {
         return bumpToFront(prev, existing.key, 1);
       }
       return [
-        { key: item.id, itemId: item.id, name: item.name, barcode: item.barcode, qty: 1, isNew: false },
+        { key: item.id, itemId: item.id, name: item.name, barcode: item.barcode, qty: 1, qtyEdited: false, isNew: false },
         ...prev,
       ];
     });
@@ -166,6 +170,7 @@ export default function InventoryInPage() {
             name: data.item.name,
             barcode: data.item.barcode,
             qty: 1,
+            qtyEdited: false,
             isNew: false,
           },
           ...prev,
@@ -230,7 +235,7 @@ export default function InventoryInPage() {
         });
         return;
       }
-      setCart((prev) => [{ key: barcode, name, barcode, qty, isNew: true }, ...prev]);
+      setCart((prev) => [{ key: barcode, name, barcode, qty, qtyEdited: true, isNew: true }, ...prev]);
       setPendingNew(null);
     } catch {
       setMessage({ text: "Network error. Please try again.", kind: "error" });
@@ -242,19 +247,27 @@ export default function InventoryInPage() {
   function updateQty(key: string, value: string) {
     // Allow the field to go through an empty/0 state while the user is
     // actively editing it (e.g. selecting "1" and typing "5") — clamped
-    // back to a minimum of 1 on blur, not on every keystroke.
+    // back to a minimum of 1 on blur, not on every keystroke. Any keystroke
+    // here marks the line as manually edited, so an explicitly typed "1"
+    // still displays as "1" instead of the blank-for-default-1 treatment.
     if (value === "") {
-      setCart((prev) => prev.map((line) => (line.key === key ? { ...line, qty: 0 } : line)));
+      setCart((prev) =>
+        prev.map((line) => (line.key === key ? { ...line, qty: 0, qtyEdited: true } : line))
+      );
       return;
     }
     const qty = Number(value);
     if (!Number.isInteger(qty) || qty < 0) return;
-    setCart((prev) => prev.map((line) => (line.key === key ? { ...line, qty } : line)));
+    setCart((prev) =>
+      prev.map((line) => (line.key === key ? { ...line, qty, qtyEdited: true } : line))
+    );
   }
 
   function normalizeQty(key: string) {
     setCart((prev) =>
-      prev.map((line) => (line.key === key && line.qty < 1 ? { ...line, qty: 1 } : line))
+      prev.map((line) =>
+        line.key === key && line.qty < 1 ? { ...line, qty: 1, qtyEdited: false } : line
+      )
     );
   }
 
@@ -490,7 +503,7 @@ export default function InventoryInPage() {
                       <input
                         type="number"
                         min={1}
-                        value={line.qty <= 1 ? "" : line.qty}
+                        value={line.qty === 0 || (line.qty === 1 && !line.qtyEdited) ? "" : line.qty}
                         onChange={(e) => updateQty(line.key, e.target.value)}
                         onBlur={() => normalizeQty(line.key)}
                         disabled={busy}
