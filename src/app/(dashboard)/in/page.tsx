@@ -490,7 +490,8 @@ export default function InventoryInPage() {
                       <input
                         type="number"
                         min={1}
-                        value={line.qty === 0 ? "" : line.qty}
+                        placeholder="1"
+                        value={line.qty <= 1 ? "" : line.qty}
                         onChange={(e) => updateQty(line.key, e.target.value)}
                         onBlur={() => normalizeQty(line.key)}
                         disabled={busy}
