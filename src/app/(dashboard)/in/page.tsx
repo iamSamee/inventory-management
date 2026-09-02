@@ -240,11 +240,21 @@ export default function InventoryInPage() {
   }
 
   function updateQty(key: string, value: string) {
+    // Allow the field to go through an empty/0 state while the user is
+    // actively editing it (e.g. selecting "1" and typing "5") — clamped
+    // back to a minimum of 1 on blur, not on every keystroke.
+    if (value === "") {
+      setCart((prev) => prev.map((line) => (line.key === key ? { ...line, qty: 0 } : line)));
+      return;
+    }
     const qty = Number(value);
+    if (!Number.isInteger(qty) || qty < 0) return;
+    setCart((prev) => prev.map((line) => (line.key === key ? { ...line, qty } : line)));
+  }
+
+  function normalizeQty(key: string) {
     setCart((prev) =>
-      prev.map((line) =>
-        line.key === key ? { ...line, qty: Number.isInteger(qty) && qty > 0 ? qty : line.qty } : line
-      )
+      prev.map((line) => (line.key === key && line.qty < 1 ? { ...line, qty: 1 } : line))
     );
   }
 
@@ -257,11 +267,12 @@ export default function InventoryInPage() {
     setBusy(true);
     setMessage(null);
     try {
-      const lines = cart.map((line) =>
-        line.isNew
-          ? { name: line.name, barcode: line.barcode, qty: line.qty }
-          : { itemId: line.itemId, qty: line.qty }
-      );
+      const lines = cart.map((line) => {
+        const qty = Math.max(1, line.qty);
+        return line.isNew
+          ? { name: line.name, barcode: line.barcode, qty }
+          : { itemId: line.itemId, qty };
+      });
       const res = await fetch("/api/transactions/in", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -479,8 +490,9 @@ export default function InventoryInPage() {
                       <input
                         type="number"
                         min={1}
-                        value={line.qty}
+                        value={line.qty === 0 ? "" : line.qty}
                         onChange={(e) => updateQty(line.key, e.target.value)}
+                        onBlur={() => normalizeQty(line.key)}
                         disabled={busy}
                         className="w-20 rounded-lg border border-black/20 px-3 py-1.5 text-lg outline-none focus:border-black/60"
                       />
